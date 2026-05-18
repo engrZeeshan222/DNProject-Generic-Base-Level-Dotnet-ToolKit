@@ -3,10 +3,6 @@ using GenericToolKit.Domain.Interfaces;
 
 namespace Patient.Domain.Specifications;
 
-/// <summary>
-/// Base specification for Patient queries
-/// Implements IBaseSpecification from Generic Toolkit
-/// </summary>
 public abstract class BasePatientSpecification : IBaseSpecification<Entities.Patient>
 {
     protected BasePatientSpecification()
@@ -25,35 +21,28 @@ public abstract class BasePatientSpecification : IBaseSpecification<Entities.Pat
 
     public bool IsAsNoTracking { get; protected set; } = true;
 
-    /// <summary>
-    /// Add include for related entities
-    /// </summary>
+    // Adds include
     protected void AddInclude(Expression<Func<Entities.Patient, object>> includeExpression)
     {
         Includes.Add(includeExpression);
     }
 
-    /// <summary>
-    /// Add include by string
-    /// </summary>
+    // Adds include
     protected void AddInclude(string includeString)
     {
         IncludeStrings.Add(includeString);
     }
 
-    /// <summary>
-    /// Set ordering
-    /// </summary>
+    // Adds order by
     protected void AddOrderBy(Func<IQueryable<Entities.Patient>, IOrderedQueryable<Entities.Patient>> orderByDelegate)
     {
         OrderByDelegate = orderByDelegate;
     }
 
-    /// <summary>
-    /// Set tracking behavior
-    /// </summary>
+    // Sets tracking
     protected void SetTracking(bool isTracking)
     {
         IsAsNoTracking = !isTracking;
     }
 }
+

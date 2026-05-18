@@ -2,12 +2,9 @@ using System.Linq.Expressions;
 
 namespace Patient.Domain.Specifications;
 
-/// <summary>
-/// Specification to get patients with their appointments
-/// Demonstrates eager loading via specifications
-/// </summary>
 public class PatientsWithAppointmentsSpecification : BasePatientSpecification
 {
+    // Builds a specification for patients that have appointments
     public PatientsWithAppointmentsSpecification(DateTime? fromDate = null)
     {
         if (fromDate.HasValue)
@@ -23,3 +20,4 @@ public class PatientsWithAppointmentsSpecification : BasePatientSpecification
         AddOrderBy(query => query.OrderByDescending(p => p.CreatedOn));
     }
 }
+

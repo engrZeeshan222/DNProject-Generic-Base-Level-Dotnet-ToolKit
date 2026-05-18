@@ -4,109 +4,63 @@ using System.Linq.Expressions;
 
 namespace Patient.Application.Services;
 
-/// <summary>
-/// Custom Patient service interface extending generic service
-/// Adds domain-specific business operations
-/// </summary>
 public interface IPatientService : IGenericService<Domain.Entities.Patient>
 {
-    /// <summary>
-    /// Create a new patient with validation and business logic
-    /// </summary>
+
+    // Creates patient
     Task<PatientDto> CreatePatientAsync(CreatePatientRequest request, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Update an existing patient
-    /// </summary>
+    // Updates patient
     Task<PatientDto> UpdatePatientAsync(UpdatePatientRequest request, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Get patient by ID with mapping to DTO
-    /// </summary>
+    // Gets patient by id
     Task<PatientDto?> GetPatientByIdAsync(int id, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Get all active patients
-    /// </summary>
+    // Gets active patients
     Task<List<PatientDto>> GetActivePatientsAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Search patients by name
-    /// </summary>
+    // Searches patients
     Task<List<PatientDto>> SearchPatientsAsync(string searchTerm, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Activate patient
-    /// </summary>
+    // Activate patient
     Task<bool> ActivatePatientAsync(int patientId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Deactivate patient
-    /// </summary>
+    // Deactivate patient
     Task<bool> DeactivatePatientAsync(int patientId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Get patient change history (demonstrates change tracking)
-    /// </summary>
+    // Gets patient change history
     Task<string> GetPatientChangeHistoryAsync(int patientId, CancellationToken cancellationToken = default);
 
-    // ============================================================================
-    // COMPREHENSIVE METHODS TO TEST ALL GENERIC SERVICE FEATURES
-    // ============================================================================
-
-    /// <summary>
-    /// Create multiple patients in bulk (tests AddMany)
-    /// </summary>
+    // Creates patients bulk
     Task<List<PatientDto>> CreatePatientsBulkAsync(List<CreatePatientRequest> requests, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Save or update patient (upsert operation - tests SaveOrUpdate)
-    /// </summary>
+    // Saves or updates or update patient
     Task<PatientDto> SaveOrUpdatePatientAsync(CreatePatientRequest request, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Get patients by list of IDs (tests ListAsync)
-    /// </summary>
+    // Gets patients by ids
     Task<List<PatientDto>> GetPatientsByIdsAsync(List<int> ids, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Count patients matching criteria (tests Count)
-    /// </summary>
+    // Counts patients
     Task<int> CountPatientsAsync(Expression<Func<Domain.Entities.Patient, bool>>? predicate = null, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Soft delete multiple patients (tests SoftDeleteMany)
-    /// </summary>
+    // Soft-deletes delete patients
     Task<bool> SoftDeletePatientsAsync(List<int> patientIds, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Hard delete multiple patients by predicate (tests HardDeleteMany)
-    /// </summary>
+    // Hard-deletes delete patients by condition
     Task<int> HardDeletePatientsByConditionAsync(Expression<Func<Domain.Entities.Patient, bool>> predicate, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Hard delete single patient entity (tests HardDeleteOne)
-    /// </summary>
+    // Hard-deletes delete patient entity
     Task<int> HardDeletePatientEntityAsync(int patientId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Remove list of patient entities (tests RemoveListOfEntities)
-    /// </summary>
+    // Removes patients list
     Task<bool> RemovePatientsListAsync(List<int> patientIds, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Get full JSON comparison for patient (tests LogFullJsonComparison)
-    /// </summary>
+    // Gets patient full json comparison
     Task<string> GetPatientFullJsonComparisonAsync(int patientId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Manually set audit properties (tests SetAuditPropertiesAsync)
-    /// </summary>
+    // Sets patient audit properties
     Task<PatientDto> SetPatientAuditPropertiesAsync(int patientId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Get patients with advanced BaseFilters (tests all BaseFilters properties)
-    /// </summary>
     Task<List<PatientDto>> GetPatientsWithAdvancedFiltersAsync(
         int? createdBy = null,
         int? updatedBy = null,
@@ -120,3 +74,4 @@ public interface IPatientService : IGenericService<Domain.Entities.Patient>
         int? take = null,
         CancellationToken cancellationToken = default);
 }
+

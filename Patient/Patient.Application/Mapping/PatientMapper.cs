@@ -3,12 +3,9 @@ using Patient.Domain.ValueObjects;
 
 namespace Patient.Application.Mapping;
 
-/// <summary>
-/// Manual mapper for Patient entity and DTOs
-/// Demonstrates mapping without AutoMapper dependency
-/// </summary>
 public static class PatientMapper
 {
+    // Maps to dto
     public static PatientDto MapToDto(Domain.Entities.Patient entity)
     {
         return new PatientDto
@@ -44,7 +41,7 @@ public static class PatientMapper
                 Phone = entity.EmergencyContact.Phone,
                 Email = entity.EmergencyContact.Email
             },
-            // Audit fields
+
             TenantId = entity.TenantId,
             CreatedBy = entity.CreatedBy,
             CreatedOn = entity.CreatedOn,
@@ -56,6 +53,7 @@ public static class PatientMapper
         };
     }
 
+    // Maps to entity
     public static Domain.Entities.Patient MapToEntity(CreatePatientRequest request)
     {
         return new Domain.Entities.Patient
@@ -90,3 +88,4 @@ public static class PatientMapper
         };
     }
 }
+

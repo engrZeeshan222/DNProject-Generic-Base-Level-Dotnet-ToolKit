@@ -2,9 +2,6 @@ using Patient.Domain.Enums;
 
 namespace Patient.Application.DTOs;
 
-/// <summary>
-/// Request DTO for creating a new patient
-/// </summary>
 public class CreatePatientRequest
 {
     public string MRN { get; set; } = string.Empty;
@@ -22,9 +19,6 @@ public class CreatePatientRequest
     public string? MedicalNotes { get; set; }
 }
 
-/// <summary>
-/// Request DTO for updating a patient
-/// </summary>
 public class UpdatePatientRequest
 {
     public int Id { get; set; }
@@ -40,3 +34,4 @@ public class UpdatePatientRequest
     public string? Allergies { get; set; }
     public string? MedicalNotes { get; set; }
 }
+

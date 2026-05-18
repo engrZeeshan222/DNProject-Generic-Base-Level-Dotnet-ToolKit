@@ -3,10 +3,6 @@ using Patient.Domain.Enums;
 
 namespace Patient.Application.DTOs;
 
-/// <summary>
-/// Patient Data Transfer Object
-/// Inherits from BaseInOutDTO for projection support
-/// </summary>
 public class PatientDto : BaseInOutDTO
 {
     public int Id { get; set; }
@@ -27,7 +23,6 @@ public class PatientDto : BaseInOutDTO
     public string? Allergies { get; set; }
     public string? MedicalNotes { get; set; }
 
-    // Audit fields
     public int? TenantId { get; set; }
     public int? CreatedBy { get; set; }
     public DateTime? CreatedOn { get; set; }
@@ -55,3 +50,4 @@ public class EmergencyContactDto
     public string Phone { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
 }
+

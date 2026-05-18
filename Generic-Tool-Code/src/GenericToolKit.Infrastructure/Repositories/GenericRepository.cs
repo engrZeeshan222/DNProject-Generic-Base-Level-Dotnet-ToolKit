@@ -12,29 +12,21 @@ using System.Linq.Expressions;
 
 namespace GenericToolKit.Infrastructure.Repositories
 {
-    /// <summary>
-    /// Generic repository implementation for Entity Framework Core.
-    /// This repository follows the Repository Pattern (DDD) and provides data access operations.
-    /// All methods are wrapped with exception handling using delegate-based wrappers.
-    /// </summary>
-    /// <typeparam name="T">The entity type that inherits from BaseEntity.</typeparam>
+
     public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
     {
         private readonly DbContext context;
         private readonly ILoggedInUser loggedInUser;
         private const string LayerName = "GenericRepository";
 
-        /// <summary>
-        /// Initializes a new instance of the GenericRepository class.
-        /// </summary>
-        /// <param name="context">The database context.</param>
-        /// <param name="loggedInUser">The current system user context for audit and tenant isolation.</param>
+        // Initializes the generic EF repository
         public GenericRepository(DbContext context, ILoggedInUser loggedInUser)
         {
             this.context = context ?? throw new ArgumentNullException(nameof(context));
             this.loggedInUser = loggedInUser ?? throw new ArgumentNullException(nameof(loggedInUser));
         }
-        
+
+        // Adds a new entity to the database
         public async Task<T> Add(T entity)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -56,7 +48,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                     var dbEntity = await dbSet.Where(a => a.Id == entity.Id).FirstOrDefaultAsync();
                     if (dbEntity != null)
                     {
-                        this.context.Entry(dbEntity).State = EntityState.Detached; // Detach the entity
+                        this.context.Entry(dbEntity).State = EntityState.Detached;
                     }
                     return dbEntity;
                 },
@@ -65,6 +57,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Gets by id
         public IQueryable<T> GetById(int id, bool detached = true)
         {
             return ExceptionHandler.Execute(
@@ -86,6 +79,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: Enumerable.Empty<T>().AsQueryable());
         }
 
+        // Permanently deletes an entity by id
         public async Task<bool> HardDeleteById(int Id)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -107,6 +101,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Permanently deletes entities matching a predicate
         public async Task<int> HardDeleteMany(Expression<Func<T, bool>> predicate)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -128,6 +123,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: 0);
         }
 
+        // Permanently deletes a single entity
         public async Task<int> HardDeleteOne(T entity)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -149,6 +145,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: 0);
         }
 
+        // Inserts or updates an entity with optional audit fields
         public async Task<T> SaveOrUpdate(T entity, bool setAuditProperties = true, bool shouldSave = true)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -159,7 +156,7 @@ namespace GenericToolKit.Infrastructure.Repositories
 
                     var dbSet = this.context.Set<T>();
                     var dbEntity = await dbSet.Where(a => a.Id == entity.Id).FirstOrDefaultAsync();
-                    
+
                     if (dbEntity == null && entity.Id == 0)
                     {
                         this.context.Entry(entity).State = EntityState.Added;
@@ -185,6 +182,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Sets audit properties recursively
         private void SetAuditPropertiesRecursively(T entity)
         {
             ExceptionHandler.Execute(
@@ -234,16 +232,19 @@ namespace GenericToolKit.Infrastructure.Repositories
                 LayerName);
         }
 
+        // Checks if of type base entity
         private static bool IsOfTypeBaseEntity(object value)
         {
             return value != null && value is BaseEntity;
         }
 
+        // Checks if collection of type base entity
         private static bool IsCollectionOfTypeBaseEntity(object value)
         {
             return value is IEnumerable<T>;
         }
 
+        // Sets entity state recursively n upsert multiple
         public async Task<bool> SetEntityStateRecursively_N_UpsertMultiple(List<T> entities, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -264,6 +265,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Checks if saved
         private async Task<bool> IsSavedAsync()
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -276,6 +278,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Sets entity state recursively
         private void SetEntityStateRecursively(T entity)
         {
             ExceptionHandler.Execute(
@@ -307,7 +310,7 @@ namespace GenericToolKit.Infrastructure.Repositories
 
                         if (this.context.Entry(entity).State == EntityState.Modified)
                         {
-                            // keep the Created Properties to be constant if user attacks and changed them 
+
                             MarkCreatedPropertiesToUnchanged(entity);
                         }
                     }
@@ -316,6 +319,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 LayerName);
         }
 
+        // Marks created properties to unchanged
         private void MarkCreatedPropertiesToUnchanged(T entity)
         {
             ExceptionHandler.Execute(
@@ -331,6 +335,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 LayerName);
         }
 
+        // Soft-deletes multiple entities
         public async Task<bool> SoftDeleteMany(IEnumerable<T> entities, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -351,6 +356,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Marks entity as deleted
         private void MarkEntityAsDeleted(T entity)
         {
             ExceptionHandler.Execute(
@@ -385,6 +391,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 LayerName);
         }
 
+        // Soft-deletes entities matching a predicate
         public async Task<bool> SoftDeleteManyByConditions(Expression<Func<T, bool>> predicates, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -410,6 +417,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Soft-deletes a single entity
         public async Task<bool> SoftDeleteOne(T entity, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -434,6 +442,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Updates one
         public async Task UpdateOne(T entity, CancellationToken token)
         {
             await ExceptionHandler.ExecuteAsync(
@@ -449,12 +458,13 @@ namespace GenericToolKit.Infrastructure.Repositories
                     }
                     this.context.Entry(entity).State = entity.Id > 0 ? EntityState.Modified : EntityState.Added;
                     await this.context.SaveChangesAsync(token);
-                    this.context.Entry(entity).State = EntityState.Detached; // Detach the entity
+                    this.context.Entry(entity).State = EntityState.Detached;
                 },
                 nameof(UpdateOne),
                 LayerName);
         }
 
+        // Gets all
         public async Task<List<T>> GetAll(BaseFilters? filters = null)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -470,6 +480,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: new List<T>());
         }
 
+        // Finds one
         public async Task<T?> FindOne(Expression<Func<T, bool>> predicate, BaseFilters? filters = null)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -484,7 +495,6 @@ namespace GenericToolKit.Infrastructure.Repositories
                         query = query.ApplyQueryFilters(filters);
                     }
 
-                    // apply custom filters 
                     var result = await query.Where(predicate).FirstOrDefaultAsync();
                     return result;
                 },
@@ -493,6 +503,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Finds
         public IQueryable<T> Find(Expression<Func<T, bool>> predicate, BaseFilters? filters = null)
         {
             return ExceptionHandler.Execute(
@@ -506,7 +517,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                     {
                         query = query.ApplyQueryFilters(filters);
                     }
-                    // apply custom filters
+
                     var result = query.Where(predicate);
                     return result;
                 },
@@ -515,6 +526,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: Enumerable.Empty<T>().AsQueryable());
         }
 
+        // Lists
         public async Task<List<T>> ListAsync(List<int> Ids, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -543,6 +555,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: new List<T>());
         }
 
+        // Checks if any entity matches
         public async Task<bool> Any(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -569,6 +582,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Counts
         public async Task<int> Count(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -595,6 +609,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: 0);
         }
 
+        // Lists by specs
         public async Task<List<T>> ListBySpecs(IBaseSpecification<T> specification, CancellationToken cancellationToken = default)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -618,6 +633,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: new List<T>());
         }
 
+        // Restores original values
         public async Task<T> RestoreOriginalValuesAsync(T entityToUpdate, List<string> propertiesToUpdate)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -649,6 +665,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Adds multiple entities in one operation
         public async Task<bool> AddMany(IEnumerable<T> entities)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -678,6 +695,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: Enumerable.Empty<TResult>().AsQueryable());
         }
 
+        // Removes list of entities
         public async Task<bool> RemoveListOfEntities(List<T> entities)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -695,6 +713,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Commits transaction
         public async Task<bool> CommitTransactionAsync(IDbContextTransaction transaction, bool shouldCommit)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -715,6 +734,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Rolls back transaction
         public async Task<bool> RollbackTransactionAsync(IDbContextTransaction transaction)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -731,6 +751,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: false);
         }
 
+        // Starts transaction
         public async Task<IDbContextTransaction> StartTransaction()
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -743,6 +764,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Sets audit properties
         public async Task SetAuditProperties(T entity)
         {
             await ExceptionHandler.ExecuteAsync(
@@ -788,6 +810,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 LayerName);
         }
 
+        // Detects change
         public Task<string> DetectChange(T entity)
         {
             return ExceptionHandler.ExecuteAsync(
@@ -796,9 +819,6 @@ namespace GenericToolKit.Infrastructure.Repositories
                     if (entity == null)
                         return string.Empty;
 
-                    /*
-                     * this will return json object which will contain key value pairs - and only those properties which are being changed, not all properties
-                     */
                     EntityEntry<T> entry = null;
                     var query = this.context.Set<T>().AsQueryable<T>();
                     var dbEntity = await query.Where(a => a.Id == entity.Id).FirstOrDefaultAsync();
@@ -835,7 +855,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                                 prop => prop.GetValue(entity)
                             );
 
-                    entry.State = EntityState.Detached; // Detach the entity    
+                    entry.State = EntityState.Detached;
                     var serializedResult = JsonConvert.SerializeObject(resultToReturn);
                     return serializedResult;
                 },
@@ -844,6 +864,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: string.Empty);
         }
 
+        // Logs full json comparison
         public async Task<string> LogFullJsonComparison(T entity)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -852,26 +873,6 @@ namespace GenericToolKit.Infrastructure.Repositories
                     if (entity == null)
                         return string.Empty;
 
-                    /*
-                     * {
-                          "OldData": {
-                            "ACPType_1246": 1246,
-                            "Value_1246": 2,
-                            "Comments_1246": "123",
-                            "Id_1246": 49784
-                          },
-                          "NewData": {
-                            "ACPType_1246": 1246,
-                            "Value_1246": 1,
-                            "Comments_1246": "",
-                            "Id_1246": 49784
-                          },
-                          "ChangedProperties": [
-                            "Value_1246",
-                            "Comments_1246"
-                          ]
-                        }
-                     */
                     var resultToReturn = new Dictionary<string, object>()
                     {
                         ["OldData"] = new Dictionary<string, object>(),
@@ -893,23 +894,22 @@ namespace GenericToolKit.Infrastructure.Repositories
                     resultToReturn["NewData"] = entity;
 
                     this.context.Entry(dbEntity).CurrentValues.SetValues(entity);
-                    // Compare the original and current values for each property
+
                     var changedProperties = dbEntity.GetType().GetProperties()
                         .Where(property =>
                         {
-                            // Skip navigation properties
+
                             if (typeof(System.Collections.IEnumerable).IsAssignableFrom(property.PropertyType)
                                 && property.PropertyType != typeof(string))
                             {
-                                return false; // skip collections
+                                return false;
                             }
 
                             if (!property.PropertyType.IsValueType && property.PropertyType != typeof(string))
                             {
-                                return false; // skip reference navigations
+                                return false;
                             }
 
-                            // Compare scalar values
                             var originalValue = this.context.Entry(dbEntity).OriginalValues[property.Name];
                             var newCurrentValue = this.context.Entry(dbEntity).CurrentValues[property.Name];
                             return !Equals(originalValue, newCurrentValue);
@@ -918,7 +918,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                         .ToList();
 
                     resultToReturn["ChangedProperties"] = changedProperties;
-                    // Serialize the result to JSON
+
                     var serializedResult = JsonConvert.SerializeObject(resultToReturn);
 
                     return serializedResult;
@@ -928,6 +928,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: string.Empty);
         }
 
+        // Creates return base entry object
         public async Task<BaseEntry<T>> CreateReturnBaseEntryObject(EntityEntry entry)
         {
             return await ExceptionHandler.ExecuteAsync(
@@ -954,6 +955,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Maps tracked state
         private static TrackedEntityState MapTrackedState(EntityState state)
         {
             return state switch
@@ -967,6 +969,7 @@ namespace GenericToolKit.Infrastructure.Repositories
             };
         }
 
+        // Gets modified properties as dictionary
         public Dictionary<string, object> GetModifiedPropertiesAsDictionary(BaseEntry<T> trackedEntry)
         {
             return ExceptionHandler.Execute(
@@ -992,7 +995,8 @@ namespace GenericToolKit.Infrastructure.Repositories
                 LayerName,
                 defaultValue: new Dictionary<string, object>());
         }
-        
+
+        // Adds or attach entity
         public EntityEntry AddOrAttachEntity(T entity)
         {
             return ExceptionHandler.Execute(
@@ -1001,22 +1005,19 @@ namespace GenericToolKit.Infrastructure.Repositories
                     if (entity == null)
                         throw new ArgumentNullException(nameof(entity));
 
-                    // Get the entity entry
                     var entry = this.context.Entry<T>(entity);
 
-                    // Check if the entity is detached (not being tracked)
                     if (entry.State == EntityState.Detached)
                     {
-                        // Attach the entity if it's detached, but keep it unchanged (no modification)
+
                         this.context.Entry(entity).State = EntityState.Unchanged;
                     }
-                    // If the entity is being tracked, ensure that it is marked as added if it's not already
+
                     else if (entry.State == EntityState.Unchanged || entry.State == EntityState.Modified)
                     {
                         entry.State = EntityState.Added;
                     }
 
-                    // Return the entry
                     return entry;
                 },
                 nameof(AddOrAttachEntity),
@@ -1024,6 +1025,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: null);
         }
 
+        // Extracts modified only old properties
         public Dictionary<string, object> ExtractModifiedOnlyOldProperties(BaseEntry<T> entry)
         {
             return ExceptionHandler.Execute(
@@ -1040,16 +1042,15 @@ namespace GenericToolKit.Infrastructure.Repositories
                             var originalVal = entityEntry.OriginalValues[prop.Name];
                             var newCurrentVal = entityEntry.CurrentValues[prop.Name];
 
-                            // Check if the original value and the current value are different
                             return !Equals(originalVal, newCurrentVal);
                         })
                         .ToDictionary(
                             prop => prop.Name,
                             prop =>
                             {
-                                // Get the original value and handle null appropriately
+
                                 var originalValue = entityEntry.OriginalValues[prop.Name];
-                                return originalValue ?? null;  // Return null if the original value is null
+                                return originalValue ?? null;
                             });
                 },
                 nameof(ExtractModifiedOnlyOldProperties),
@@ -1057,6 +1058,7 @@ namespace GenericToolKit.Infrastructure.Repositories
                 defaultValue: new Dictionary<string, object>());
         }
 
+        // Extracts modified only changed properties
         public Dictionary<string, object> ExtractModifiedOnlyChangedProperties(BaseEntry<T> entry)
         {
             return ExceptionHandler.Execute(
@@ -1073,16 +1075,15 @@ namespace GenericToolKit.Infrastructure.Repositories
                             var originalVal = entityEntry.OriginalValues[prop.Name];
                             var newCurrentVal = entityEntry.CurrentValues[prop.Name];
 
-                            // Check if the original value and the current value are different
                             return !Equals(originalVal, newCurrentVal);
                         })
                         .ToDictionary(
                             prop => prop.Name,
                             prop =>
                             {
-                                // Get the original value and handle null appropriately
+
                                 var originalValue = entityEntry.CurrentValues[prop.Name];
-                                return originalValue ?? null;  // Return null if the original value is null
+                                return originalValue ?? null;
                             });
                 },
                 nameof(ExtractModifiedOnlyChangedProperties),
@@ -1091,3 +1092,4 @@ namespace GenericToolKit.Infrastructure.Repositories
         }
     }
 }
+

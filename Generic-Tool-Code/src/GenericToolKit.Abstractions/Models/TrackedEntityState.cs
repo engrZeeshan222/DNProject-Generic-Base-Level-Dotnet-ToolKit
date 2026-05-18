@@ -1,8 +1,6 @@
 namespace GenericToolKit.Domain.Models
 {
-    /// <summary>
-    /// Persistence-agnostic representation of an entity tracking state.
-    /// </summary>
+
     public enum TrackedEntityState
     {
         Detached = 0,
@@ -12,5 +10,4 @@ namespace GenericToolKit.Domain.Models
         Added = 4
     }
 }
-
 

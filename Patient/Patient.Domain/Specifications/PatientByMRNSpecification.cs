@@ -2,11 +2,9 @@ using System.Linq.Expressions;
 
 namespace Patient.Domain.Specifications;
 
-/// <summary>
-/// Specification to find patient by MRN
-/// </summary>
 public class PatientByMRNSpecification : BasePatientSpecification
 {
+    // Builds a specification to find a patient by MRN
     public PatientByMRNSpecification(string mrn, bool includeAppointments = false)
     {
         WhereExpression = p => p.MRN == mrn;
@@ -17,3 +15,4 @@ public class PatientByMRNSpecification : BasePatientSpecification
         }
     }
 }
+

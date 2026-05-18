@@ -2,11 +2,9 @@ using System.Linq.Expressions;
 
 namespace Patient.Domain.Specifications;
 
-/// <summary>
-/// Specification to find patients by age range
-/// </summary>
 public class PatientsByAgeRangeSpecification : BasePatientSpecification
 {
+    // Builds a specification for patients within an age range
     public PatientsByAgeRangeSpecification(int minAge, int maxAge)
     {
         var maxBirthDate = DateTime.Today.AddYears(-minAge);
@@ -16,3 +14,4 @@ public class PatientsByAgeRangeSpecification : BasePatientSpecification
         AddOrderBy(query => query.OrderBy(p => p.DateOfBirth));
     }
 }
+

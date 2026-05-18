@@ -1,8 +1,5 @@
 namespace Patient.Domain.Enums;
 
-/// <summary>
-/// Gender enumeration
-/// </summary>
 public enum Gender
 {
     Male = 1,
@@ -10,3 +7,4 @@ public enum Gender
     Other = 3,
     PreferNotToSay = 4
 }
+

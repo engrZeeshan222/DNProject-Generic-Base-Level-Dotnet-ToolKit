@@ -2,12 +2,10 @@ using System.Diagnostics;
 
 namespace GenericToolKit.Domain.Utilities
 {
-    /// <summary>
-    /// Provides reusable exception handling wrappers using C# delegates.
-    /// Cross-cutting utility (not domain logic). Kept EF-agnostic.
-    /// </summary>
+
     public static class ExceptionHandler
     {
+        // Executes
         public static void Execute(Action action, string methodName, string layerName, Action<Exception>? onException = null)
         {
             try
@@ -65,6 +63,7 @@ namespace GenericToolKit.Domain.Utilities
             }
         }
 
+        // Executes
         public static async Task ExecuteAsync(
             Func<Task> asyncAction,
             string methodName,
@@ -129,6 +128,7 @@ namespace GenericToolKit.Domain.Utilities
             }
         }
 
+        // Handle exception
         private static void HandleException(
             Exception ex,
             string methodName,
@@ -140,6 +140,7 @@ namespace GenericToolKit.Domain.Utilities
             onException?.Invoke(ex);
         }
 
+        // Logs exception
         private static void LogException(Exception ex, string methodName, string layerName, string exceptionType)
         {
             var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -153,5 +154,4 @@ namespace GenericToolKit.Domain.Utilities
         }
     }
 }
-
 

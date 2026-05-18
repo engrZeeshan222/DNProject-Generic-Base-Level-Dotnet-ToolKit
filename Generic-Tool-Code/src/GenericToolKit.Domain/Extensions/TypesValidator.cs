@@ -4,6 +4,7 @@ namespace GenericToolKit.Domain.Extensions
 {
     public static class TypesValidator
     {
+        // Checks if valid object
         public static bool IsValidObject(this object obj)
         {
             try
@@ -20,7 +21,8 @@ namespace GenericToolKit.Domain.Extensions
                 return false;
             }
         }
-        
+
+        // Checks if valid dictionary
         public static bool IsValidDictionary(this Dictionary<string,object> dictionary)
         {
             try
@@ -37,18 +39,19 @@ namespace GenericToolKit.Domain.Extensions
                 return false;
             }
         }
-        
+
+        // To dictionary
         public static Dictionary<string,object> ToDictionary(this object obj)
         {
             try
             {
                 if(!obj.IsValidObject())
                 {
-                    return new Dictionary<string, object>();    
+                    return new Dictionary<string, object>();
                 }
 
                 var dicToReturn = new Dictionary<string, object>();
-                var allObjectProperties = TypeDescriptor.GetProperties(obj); 
+                var allObjectProperties = TypeDescriptor.GetProperties(obj);
                 for(int i = 0; i < allObjectProperties.Count; i++)
                 {
                     dicToReturn.Add(allObjectProperties[i].Name, allObjectProperties[i]?.GetValue(obj));
@@ -105,8 +108,8 @@ namespace GenericToolKit.Domain.Extensions
             {
                 return false;
             }
-        }        
-        
+        }
+
         public static bool IsValidEnumerable<T>(this IEnumerable<T> enumerable)
         {
             try
@@ -123,7 +126,8 @@ namespace GenericToolKit.Domain.Extensions
                 return false;
             }
         }
-        
+
+        // Checks if valid string
         public static bool IsValidString(this string str)
         {
             try
@@ -141,6 +145,7 @@ namespace GenericToolKit.Domain.Extensions
             }
         }
 
+        // Checks if valid date
         public static bool IsValidDate(this DateTime? date)
         {
             return (date is not null) && date != DateTime.MinValue && date != DateTime.MaxValue;
