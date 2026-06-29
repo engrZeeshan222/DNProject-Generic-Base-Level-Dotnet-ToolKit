@@ -1,83 +1,94 @@
 using System.Linq.Expressions;
 
-namespace GenericToolKit.Domain.Models
+namespace GenericToolKit.Domain.Models;
+
+public class BaseFilters
 {
+    private int _skip;
+    private int _take = 20;
 
-    public class BaseFilters
+    private string? _sortBy;
+
+    public int Id { get; set; }
+
+    public int TenantId { get; set; }
+
+    public int CreatedBy { get; set; }
+
+    public int UpdatedBy { get; set; }
+
+    public int DeletedBy { get; set; }
+
+    public bool AsNoTracking { get; set; } = true;
+
+    public bool IgnoreTenantFilter { get; set; } = false;
+
+    public bool IncludeInactive { get; set; } = false;
+
+    public bool IncludeDeleted { get; set; } = false;
+
+    public bool ApplyPagination { get; set; }
+
+    // Encapsulated Skip property
+    public int Skip
     {
-
-        public int Id { get; set; } = 0;
-
-        public int TenantId { get; set; }
-
-        public int CreatedBy { get; set; }
-
-        public int UpdatedBy { get; set; }
-
-        public int DeleteBy { get; set; }
-
-        public bool IsAsNoTracking { get; set; } = true;
-
-        public bool IgnoreActiveCheck { get; set; } = false;
-
-        public bool IgnoreTenantCheck { get; set; } = false;
-
-        public bool ApplyPagination { get; set; } = false;
-
-        private int skip;
-        private int take;
-
-        public int? Take
-        {
-            get
-            {
-                return take == 0 ? 20 : take;
-            }
-            set
-            {
-                take = value ?? 0;
-            }
-        }
-
-        public int? Skip
-        {
-            get
-            {
-                return skip == 0 ? 0 : skip;
-            }
-            set
-            {
-                skip = value ?? 0;
-            }
-        }
-
-        public string ApplySorting { get; set; }
-
-        public List<OrderExpression> OrderExpressions { get; set; } = new List<OrderExpression>();
-
-        public bool IsIgnoreAutoIncludes { get; set; } = false;
-
-        public bool IncludeSoftDeletedEntitiesAlso { get; set; } = false;
-
-        public DateTime? StartDate { get; set; } = null;
-
-        public DateTime? EndDate { get; set; } = null;
+        get => _skip;
+        set => _skip = value < 0 ? 0 : value;
     }
 
-    public class OrderExpression
+    // Encapsulated Take property
+    public int Take
     {
-
-        public OrderTypeEnum OrderType { get; set; }
-
-        public Expression<Func<IQueryable, object>> Selector { get; set; }
+        get => _take;
+        set => _take = value <= 0 ? 20 : value;
     }
 
-    public enum OrderTypeEnum
+    // Encapsulated SortBy property
+    public string? SortBy
     {
-        OrderBy = 1,
-        OrderByDescending = 2,
-        ThenBy = 3,
-        ThenByDescending = 4
+        get => _sortBy;
+        set => _sortBy = string.IsNullOrWhiteSpace(value)
+            ? null
+            : value.Trim();
+    }
+
+    public List<OrderExpression> OrderExpressions { get; set; } = new List<OrderExpression>();
+
+    public bool IgnoreAutoIncludes { get; set; }
+
+    public DateTime? StartDate { get; set; }
+
+    public DateTime? EndDate { get; set; }
+    public void ApplyDefaultFilters(int tenantId)
+    {
+        TenantId = tenantId;
+
+        IgnoreTenantFilter = false;
+
+        IncludeDeleted = false;
+
+        IncludeInactive = false;
     }
 }
 
+public class OrderExpression
+{
+    private LambdaExpression? _selector;
+
+    public OrderTypeEnum OrderType { get; set; }
+
+    // Encapsulated Selector property
+    public LambdaExpression? Selector
+    {
+        get => _selector;
+        set => _selector = value ?? throw new ArgumentNullException(nameof(Selector));
+    }
+}
+
+public enum OrderTypeEnum
+{
+    OrderBy = 1,
+    OrderByDescending = 2,
+    ThenBy = 3,
+    ThenByDescending = 4
+}

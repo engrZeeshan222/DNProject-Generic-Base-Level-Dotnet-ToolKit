@@ -539,9 +539,9 @@ namespace GenericToolKit.Infrastructure.Repositories
 
                     var filters = new BaseFilters()
                     {
-                        IncludeSoftDeletedEntitiesAlso = false,
+                        IncludeDeleted = true,
                         TenantId = this.loggedInUser.TenantId,
-                        IsAsNoTracking = true,
+                        AsNoTracking = true,
                         Skip = 0,
                         Take = Ids.Count,
                     };
@@ -567,9 +567,9 @@ namespace GenericToolKit.Infrastructure.Repositories
                     var query = this.context.Set<T>().AsQueryable<T>();
                     var filters = new BaseFilters()
                     {
-                        IncludeSoftDeletedEntitiesAlso = false,
+                        IncludeDeleted = true,
                         TenantId = this.loggedInUser.TenantId,
-                        IsAsNoTracking = true,
+                        AsNoTracking = true,
                         Skip = 0,
                         Take = 1,
                     };
@@ -594,9 +594,9 @@ namespace GenericToolKit.Infrastructure.Repositories
                     var query = this.context.Set<T>().AsQueryable<T>();
                     var filters = new BaseFilters()
                     {
-                        IncludeSoftDeletedEntitiesAlso = false,
+                        IncludeDeleted = true,
                         TenantId = this.loggedInUser.TenantId,
-                        IsAsNoTracking = true,
+                        AsNoTracking = true,
                         Skip = 0,
                         Take = 1,
                     };

@@ -1,115 +1,101 @@
 using GenericToolKit.Domain.Entities;
-using GenericToolKit.Domain.Extensions;
 using GenericToolKit.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace GenericToolKit.Domain.Extensions
+namespace GenericToolKit.Domain.Extensions;
+
+public static class QueryableExtensions
 {
-
-    public static class QueryableExtensions
+    public static IQueryable<T> ApplyQueryFilters<T>(
+        this IQueryable<T> query,
+        BaseFilters filters) where T : BaseEntity
     {
+        if (filters is null)
+            return query;
 
-        public static IQueryable<T> ApplyQueryFilters<T>(this IQueryable<T> sourceQuery, BaseFilters filters) where T : BaseEntity
+        if (filters.AsNoTracking)
+            query = query.AsNoTracking();
+
+        if (filters.IgnoreAutoIncludes)
+            query = query.IgnoreAutoIncludes();
+
+        if (filters.IncludeDeleted || filters.IgnoreTenantFilter)
+            query = query.IgnoreQueryFilters();
+
+        if (!filters.IncludeDeleted)
+            query = query.Where(x => x.IsDeleted != true);
+
+        if (!filters.IgnoreTenantFilter && filters.TenantId > 0)
+            query = query.Where(x => x.TenantId == filters.TenantId);
+
+        if (filters.Id > 0)
+            query = query.Where(x => x.Id == filters.Id);
+
+        if (filters.CreatedBy > 0)
+            query = query.Where(x => x.CreatedBy == filters.CreatedBy);
+
+        if (filters.UpdatedBy > 0)
+            query = query.Where(x => x.UpdatedBy == filters.UpdatedBy);
+
+        if (filters.DeletedBy > 0)
+            query = query.Where(x => x.DeletedBy == filters.DeletedBy);
+
+        if (filters.StartDate.HasValue)
+            query = query.Where(x => x.CreatedOn >= filters.StartDate.Value);
+
+        if (filters.EndDate.HasValue)
+            query = query.Where(x => x.CreatedOn <= filters.EndDate.Value);
+
+        query = ApplySorting(query, filters);
+
+        if (filters.ApplyPagination)
+            query = query.Skip(filters.Skip).Take(filters.Take);
+
+        return query;
+    }
+
+    private static IQueryable<T> ApplySorting<T>(
+        IQueryable<T> query,
+        BaseFilters filters) where T : BaseEntity
+    {
+        if (filters.OrderExpressions.Count > 0)
+            return ApplyExpressionSorting(query, filters.OrderExpressions);
+
+        if (!string.IsNullOrWhiteSpace(filters.SortBy))
+            return query.OrderBy(x => EF.Property<object>(x, filters.SortBy));
+
+        return query;
+    }
+
+    private static IQueryable<T> ApplyExpressionSorting<T>(
+        IQueryable<T> query,
+        List<OrderExpression> orderExpressions) where T : BaseEntity
+    {
+        IOrderedQueryable<T>? orderedQuery = null;
+
+        foreach (var order in orderExpressions)
         {
-            try
+            if (order.Selector is null)
+                continue;
+
+            orderedQuery = order.OrderType switch
             {
-                if (!filters.IsValidObject())
-                    return sourceQuery;
+                OrderTypeEnum.OrderBy =>
+                    Queryable.OrderBy(query, (dynamic)order.Selector),
 
-                sourceQuery = ApplyDefaultFilters(sourceQuery);
+                OrderTypeEnum.OrderByDescending =>
+                    Queryable.OrderByDescending(query, (dynamic)order.Selector),
 
-                if (!filters.IgnoreTenantCheck && filters.TenantId > 0)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.TenantId == filters.TenantId);
-                }
+                OrderTypeEnum.ThenBy when orderedQuery is not null =>
+                    Queryable.ThenBy(orderedQuery, (dynamic)order.Selector),
 
-                if (filters.CreatedBy > 0)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.CreatedBy == filters.CreatedBy);
-                }
+                OrderTypeEnum.ThenByDescending when orderedQuery is not null =>
+                    Queryable.ThenByDescending(orderedQuery, (dynamic)order.Selector),
 
-                if (filters.UpdatedBy > 0)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.UpdatedBy == filters.UpdatedBy);
-                }
-
-                if (filters.DeleteBy > 0)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.DeletedBy == filters.DeleteBy);
-                }
-
-                if (filters.IsAsNoTracking)
-                {
-                    sourceQuery = sourceQuery.AsNoTracking();
-                }
-
-                if (filters.IgnoreActiveCheck)
-                {
-                    sourceQuery = sourceQuery.Where(x => (x.IsDeleted == true));
-                }
-
-                if(filters.ApplyPagination)
-                    sourceQuery = sourceQuery.Skip(filters.Skip.GetValueOrDefault()).Take(filters.Take.GetValueOrDefault());
-
-                if (!string.IsNullOrWhiteSpace(filters.ApplySorting) || filters.OrderExpressions.Count != 0)
-                {
-
-                    if (filters.OrderExpressions.Count != 0)
-                    {
-                        IOrderedQueryable<T> orderedQuery = null;
-                        foreach (var expression in filters.OrderExpressions)
-                        {
-                            if(expression.OrderType == OrderTypeEnum.OrderBy)
-                            {
-                                orderedQuery = Queryable.OrderBy((IQueryable<T>)sourceQuery, (dynamic)expression.Selector);
-                            }else if(expression.OrderType == OrderTypeEnum.OrderByDescending)
-                            {
-                                orderedQuery = Queryable.OrderByDescending((IQueryable<T>)sourceQuery, (dynamic)expression.Selector);
-                            }else if(expression.OrderType == OrderTypeEnum.ThenBy)
-                            {
-                                orderedQuery = Queryable.ThenBy((IOrderedQueryable<T>)sourceQuery, (dynamic)expression.Selector);
-                            }else  if(expression.OrderType == OrderTypeEnum.ThenByDescending)
-                            {
-                                orderedQuery = Queryable.ThenByDescending((IOrderedQueryable<T>)sourceQuery, (dynamic)expression.Selector);
-                            }
-                        }
-                        if (orderedQuery != null)
-                            sourceQuery = orderedQuery;
-                    }
-
-                    else if (!string.IsNullOrWhiteSpace(filters.ApplySorting))
-                    {
-                        sourceQuery = sourceQuery.OrderBy(x => EF.Property<object>(x, filters.ApplySorting));
-                    }
-                }
-
-                if(filters.IncludeSoftDeletedEntitiesAlso)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.IsDeleted == true);
-                }
-
-                if (filters.StartDate.HasValue)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.CreatedOn >= filters.StartDate.Value);
-                }
-                if(filters.EndDate.HasValue)
-                {
-                    sourceQuery = sourceQuery.Where(x => x.CreatedOn <= filters.EndDate.Value);
-                }
-                return sourceQuery;
-            }
-            catch (Exception)
-            {
-
-                return sourceQuery;
-            }
+                _ => orderedQuery
+            };
         }
 
-        private static IQueryable<T> ApplyDefaultFilters<T>(IQueryable<T> sourceQuery) where T : BaseEntity
-        {
-            sourceQuery = sourceQuery.Where(a => a.IsDeleted != true);
-            return sourceQuery;
-        }
+        return orderedQuery ?? query;
     }
 }
-
